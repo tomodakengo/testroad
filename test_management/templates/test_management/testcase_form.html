@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        テストケースの編集
+    {% elif is_duplicate %}
+        テストケースの複製
+    {% else %}
+        新規テストケース
+    {% endif %} - TestRoad
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h1 class="text-2xl font-bold text-gray-900">
+            {% if form.instance.pk %}
+                テストケースの編集
+            {% elif is_duplicate %}
+                テストケースの複製
+            {% else %}
+                新規テストケース
+            {% endif %}
+        </h1>
+        <p class="mt-1 text-sm text-gray-500">
+            テストスイート: <a href="{% url 'testsuite_detail' testsuite.id %}" class="text-primary hover:text-primary-dark">{{ testsuite.name }}</a>
+            {% if is_duplicate %}
+                <br>
+                元のテストケース: <a href="{% url 'testcase_detail' source_case.id %}" class="text-primary hover:text-primary-dark">{{ source_case.title }}</a>
+            {% endif %}
+        </p>
+    </div>
+    <div class="border-t border-gray-200">
+        <form method="post" enctype="multipart/form-data" class="p-6">
+            {% csrf_token %}
+            <div class="space-y-6">
+                {{ form.title|as_crispy_field }}
+                {{ form.description|as_crispy_field }}
+                {{ form.preconditions|as_crispy_field }}
+                {{ form.steps|as_crispy_field }}
+                {{ form.expected_result|as_crispy_field }}
+                <div class="mt-4">
+                    {{ form.attachments|as_crispy_field }}
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end space-x-4">
+                <a href="{% if form.instance.pk %}{% url 'testcase_detail' form.instance.pk %}{% elif is_duplicate %}{% url 'testcase_detail' source_case.id %}{% else %}{% url 'testsuite_detail' testsuite.id %}{% endif %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    キャンセル
+                </a>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {% if form.instance.pk %}
+                        更新
+                    {% elif is_duplicate %}
+                        複製して作成
+                    {% else %}
+                        作成
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

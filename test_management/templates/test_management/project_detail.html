@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.name }} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
+        <div class="flex space-x-4">
+            <a href="{% url 'project_update' project.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                編集
+            </a>
+            <a href="{% url 'project_delete' project.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                削除
+            </a>
+            <a href="{% url 'testsuite_create' project.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                新規テストスイート
+            </a>
+            <a href="{% url 'testplan_create' project.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                新規テストプラン
+            </a>
+            <a href="{% url 'project_bugs' project.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                不具合一覧
+            </a>
+        </div>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">説明</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ project.description|linebreaks|default:"説明なし" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">作成日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ project.created_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">更新日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ project.updated_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-8">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h2 class="text-xl font-bold text-gray-900">テストスイート一覧</h2>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if project.testsuite_set.exists %}
+                <ul class="divide-y divide-gray-200">
+                    {% for suite in project.testsuite_set.all %}
+                        <li class="hover:bg-gray-50">
+                            <a href="{% url 'testsuite_detail' suite.id %}" class="block">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-lg font-medium text-primary truncate">
+                                            {{ suite.name }}
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0 flex">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {{ suite.testcase_set.count }} テストケース
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 sm:flex sm:justify-between">
+                                        <div class="sm:flex">
+                                            <p class="flex items-center text-sm text-gray-500">
+                                                {{ suite.description|truncatechars:100 }}
+                                            </p>
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                            <p>作成日: {{ suite.created_at|date:"Y/m/d" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                    テストスイートがありません。新規テストスイートを作成してください。
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-8">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h2 class="text-xl font-bold text-gray-900">テストプラン一覧</h2>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if project.testplan_set.exists %}
+                <ul class="divide-y divide-gray-200">
+                    {% for plan in project.testplan_set.all %}
+                        <li class="hover:bg-gray-50">
+                            <a href="{% url 'testplan_detail' plan.id %}" class="block">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-lg font-medium text-primary truncate">
+                                            {{ plan.name }}
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0 flex">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                {{ plan.test_cases.count }} テストケース
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 sm:flex sm:justify-between">
+                                        <div class="sm:flex">
+                                            <p class="flex items-center text-sm text-gray-500">
+                                                {{ plan.description|truncatechars:100 }}
+                                            </p>
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                            <p>作成者: {{ plan.created_by.username }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                    テストプランがありません。新規テストプランを作成してください。
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

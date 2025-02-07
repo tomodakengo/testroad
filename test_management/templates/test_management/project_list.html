@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}プロジェクト一覧 - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-900">プロジェクト一覧</h1>
+        <a href="{% url 'project_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+            新規プロジェクト
+        </a>
+    </div>
+    <div class="border-t border-gray-200">
+        {% if project_list %}
+            <ul class="divide-y divide-gray-200">
+                {% for project in project_list %}
+                    <li class="hover:bg-gray-50">
+                        <a href="{% url 'project_detail' project.id %}" class="block">
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-lg font-medium text-primary truncate">
+                                        {{ project.name }}
+                                    </div>
+                                    <div class="ml-2 flex-shrink-0 flex">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            {{ project.testsuite_set.count }} スイート
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mt-2 sm:flex sm:justify-between">
+                                    <div class="sm:flex">
+                                        <p class="flex items-center text-sm text-gray-500">
+                                            {{ project.description|truncatechars:100 }}
+                                        </p>
+                                    </div>
+                                    <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                        <p>作成日: {{ project.created_at|date:"Y/m/d" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                プロジェクトがありません。新規プロジェクトを作成してください。
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}テストケースのインポート - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h1 class="text-2xl font-bold text-gray-900">テストケースのインポート</h1>
+        <p class="mt-1 text-sm text-gray-500">
+            テストスイート: <a href="{% url 'testsuite_detail' testsuite.id %}" class="text-primary hover:text-primary-dark">{{ testsuite.name }}</a>
+        </p>
+    </div>
+    <div class="border-t border-gray-200">
+        <form method="post" enctype="multipart/form-data" class="p-6">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <div class="mt-6">
+                <h2 class="text-lg font-medium text-gray-900">CSVファイルの形式</h2>
+                <div class="mt-2 text-sm text-gray-600">
+                    <p>以下のヘッダーを含むCSVファイルを準備してください：</p>
+                    <ul class="list-disc list-inside mt-2">
+                        <li>タイトル</li>
+                        <li>説明</li>
+                        <li>前提条件</li>
+                        <li>テストステップ</li>
+                        <li>期待される結果</li>
+                    </ul>
+                    <p class="mt-2">CSVファイルは文字コード「UTF-8」で保存してください。</p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end space-x-4">
+                <a href="{% url 'testsuite_detail' testsuite.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    キャンセル
+                </a>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    インポート
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

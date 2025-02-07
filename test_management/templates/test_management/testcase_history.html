@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ testcase.title }}の履歴 - TestRoad{% endblock %}
+
+{% block extra_head %}
+<style type="text/css">
+    .diff-line {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        white-space: pre;
+        line-height: 1.5;
+        padding: 0 10px;
+        display: block;
+        width: 100%;
+    }
+    .diff-line.diff-added {
+        background-color: #e6ffec;
+        color: #1a7f37;
+    }
+    .diff-line.diff-removed {
+        background-color: #ffebe9;
+        color: #cf222e;
+    }
+    .diff-line.diff-unchanged {
+        background-color: transparent;
+        color: #24292f;
+    }
+    .diff-container {
+        background-color: #ffffff;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+    .diff-header {
+        background-color: #f6f8fa;
+        border-bottom: 1px solid #d0d7de;
+        padding: 8px 16px;
+        color: #24292f;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .diff-content {
+        padding: 8px 0;
+        margin: 0;
+        overflow-x: auto;
+        background-color: #ffffff;
+    }
+    .diff-content > div:hover {
+        background-color: rgba(27, 31, 35, 0.035);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ testcase.title }}の履歴</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                テストスイート: <a href="{% url 'testsuite_detail' testcase.suite.id %}" class="text-primary hover:text-primary-dark">{{ testcase.suite.name }}</a>
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'testcase_detail' testcase.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                テストケースに戻る
+            </a>
+        </div>
+    </div>
+    <div class="border-t border-gray-200">
+        {% if histories %}
+            <ul class="divide-y divide-gray-200">
+                {% for history in histories %}
+                    <li class="p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">バージョン {{ history.version }}</h3>
+                                <p class="text-sm text-gray-500">
+                                    変更者: {{ history.changed_by.username }} - 
+                                    変更日時: {{ history.changed_at|date:"Y/m/d H:i" }}
+                                </p>
+                            </div>
+                            <form method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="version" value="{{ history.version }}">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                    このバージョンに戻す
+                                </button>
+                            </form>
+                        </div>
+                        {% if history.change_comment %}
+                            <p class="mt-2 text-sm text-gray-700">{{ history.change_comment }}</p>
+                        {% endif %}
+                        <div class="mt-4 space-y-4">
+                            {% if history.title_diff %}
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700">タイトルの変更</h4>
+                                    <div class="mt-1 diff-container">
+                                        <div class="diff-header">タイトル</div>
+                                        <div class="diff-content">
+                                            {% for line in history.title_diff.splitlines %}
+                                                <div class="diff-line {% if line|slice:":2" == "+ " %}diff-added{% elif line|slice:":2" == "- " %}diff-removed{% else %}diff-unchanged{% endif %}">{{ line }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if history.description_diff %}
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700">説明の変更</h4>
+                                    <div class="mt-1 diff-container">
+                                        <div class="diff-header">説明</div>
+                                        <div class="diff-content">
+                                            {% for line in history.description_diff.splitlines %}
+                                                <div class="diff-line {% if line|slice:":2" == "+ " %}diff-added{% elif line|slice:":2" == "- " %}diff-removed{% else %}diff-unchanged{% endif %}">{{ line }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if history.preconditions_diff %}
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700">前提条件の変更</h4>
+                                    <div class="mt-1 diff-container">
+                                        <div class="diff-header">前提条件</div>
+                                        <div class="diff-content">
+                                            {% for line in history.preconditions_diff.splitlines %}
+                                                <div class="diff-line {% if line|slice:":2" == "+ " %}diff-added{% elif line|slice:":2" == "- " %}diff-removed{% else %}diff-unchanged{% endif %}">{{ line }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if history.steps_diff %}
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700">テストステップの変更</h4>
+                                    <div class="mt-1 diff-container">
+                                        <div class="diff-header">テストステップ</div>
+                                        <div class="diff-content">
+                                            {% for line in history.steps_diff.splitlines %}
+                                                <div class="diff-line {% if line|slice:":2" == "+ " %}diff-added{% elif line|slice:":2" == "- " %}diff-removed{% else %}diff-unchanged{% endif %}">{{ line }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if history.expected_result_diff %}
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700">期待される結果の変更</h4>
+                                    <div class="mt-1 diff-container">
+                                        <div class="diff-header">期待される結果</div>
+                                        <div class="diff-content">
+                                            {% for line in history.expected_result_diff.splitlines %}
+                                                <div class="diff-line {% if line|slice:":2" == "+ " %}diff-added{% elif line|slice:":2" == "- " %}diff-removed{% else %}diff-unchanged{% endif %}">{{ line }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                履歴はありません
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

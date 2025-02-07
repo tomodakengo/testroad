@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}テストプランの編集{% else %}新規テストプラン{% endif %} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h1 class="text-2xl font-bold text-gray-900">
+            {% if form.instance.pk %}
+                テストプランの編集
+            {% else %}
+                新規テストプラン
+            {% endif %}
+        </h1>
+        <p class="mt-1 text-sm text-gray-500">
+            プロジェクト: <a href="{% url 'project_detail' project.id %}" class="text-primary hover:text-primary-dark">{{ project.name }}</a>
+        </p>
+    </div>
+    <div class="border-t border-gray-200">
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <div>
+                    {{ form.name|as_crispy_field }}
+                </div>
+                <div>
+                    {{ form.description|as_crispy_field }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">テストケース</label>
+                    <div class="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                        {% regroup form.test_cases.field.queryset|dictsort:"suite.name" by suite as suite_list %}
+                        {% for suite in suite_list %}
+                            <div class="mb-4">
+                                <h3 class="font-medium text-gray-900 mb-2">{{ suite.grouper.name }}</h3>
+                                {% for test_case in suite.list %}
+                                    <div class="flex items-start py-2">
+                                        <div class="flex items-center h-5">
+                                            <input type="checkbox" name="test_cases" value="{{ test_case.id }}"
+                                                {% if test_case in form.test_cases.initial %}checked{% endif %}
+                                                class="focus:ring-primary h-4 w-4 text-primary border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3">
+                                            <label class="font-medium text-gray-700">{{ test_case.title }}</label>
+                                            <p class="text-sm text-gray-500">{{ test_case.description|truncatechars:100 }}</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-500 text-center py-4">テストケースがありません。先にテストケースを作成してください。</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex items-center justify-end space-x-4">
+                <a href="{% url 'project_detail' project.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    キャンセル
+                </a>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {% if form.instance.pk %}更新{% else %}作成{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if is_update %}不具合の編集{% else %}不具合の起票{% endif %} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h1 class="text-2xl font-bold text-gray-900">{% if is_update %}不具合の編集{% else %}不具合の起票{% endif %}</h1>
+        {% if not is_update %}
+            <p class="mt-1 text-sm text-gray-500">
+                テストケース: <a href="{% url 'testcase_detail' test_result.test_case.id %}" class="text-primary hover:text-primary-dark">{{ test_result.test_case.title }}</a>
+            </p>
+        {% endif %}
+    </div>
+    <div class="border-t border-gray-200">
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <div>
+                    {{ form.title|as_crispy_field }}
+                </div>
+                <div>
+                    {{ form.description|as_crispy_field }}
+                </div>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        {{ form.priority|as_crispy_field }}
+                    </div>
+                    <div>
+                        {{ form.assigned_to|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex items-center justify-end space-x-4">
+                {% if is_update %}
+                    <a href="{% url 'bug_detail' bug.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        キャンセル
+                    </a>
+                {% else %}
+                    <a href="{% url 'testrun_detail' test_result.test_run.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        キャンセル
+                    </a>
+                {% endif %}
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {% if is_update %}更新{% else %}起票{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

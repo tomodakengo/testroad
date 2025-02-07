@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ testplan.name }} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ testplan.name }}</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                プロジェクト: <a href="{% url 'project_detail' testplan.project.id %}" class="text-primary hover:text-primary-dark">{{ testplan.project.name }}</a>
+            </p>
+        </div>
+        <div class="flex space-x-4">
+            <a href="{% url 'testplan_update' testplan.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                編集
+            </a>
+            <a href="{% url 'testplan_delete' testplan.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                削除
+            </a>
+            <a href="{% url 'testrun_create' testplan.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                テスト実行を開始
+            </a>
+        </div>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">説明</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testplan.description|linebreaks|default:"説明なし" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">作成者</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testplan.created_by.username }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">作成日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testplan.created_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">更新日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testplan.updated_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-8">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h2 class="text-xl font-bold text-gray-900">テストケース一覧</h2>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if testplan.test_cases.exists %}
+                <ul class="divide-y divide-gray-200">
+                    {% for case in testplan.test_cases.all %}
+                        <li class="hover:bg-gray-50">
+                            <a href="{% url 'testcase_detail' case.id %}" class="block">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-lg font-medium text-primary truncate">
+                                            {{ case.title }}
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0 flex">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                {{ case.suite.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 sm:flex sm:justify-between">
+                                        <div class="sm:flex">
+                                            <p class="flex items-center text-sm text-gray-500">
+                                                {{ case.description|truncatechars:100 }}
+                                            </p>
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                            <p>作成者: {{ case.created_by.username }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                    テストケースがありません。テストプランを編集してテストケースを追加してください。
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-8">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h2 class="text-xl font-bold text-gray-900">テスト実行履歴</h2>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if testplan.testrun_set.exists %}
+                <ul class="divide-y divide-gray-200">
+                    {% for run in testplan.testrun_set.all %}
+                        <li class="hover:bg-gray-50">
+                            <a href="{% url 'testrun_detail' run.id %}" class="block">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-lg font-medium text-primary truncate">
+                                            {{ run.name }}
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0 flex">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if run.status == 'not_started' %}bg-gray-100 text-gray-800
+                                                {% elif run.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-green-100 text-green-800{% endif %}">
+                                                {{ run.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 sm:flex sm:justify-between">
+                                        <div class="sm:flex">
+                                            <p class="flex items-center text-sm text-gray-500">
+                                                {{ run.description|truncatechars:100 }}
+                                            </p>
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                            <p>担当者: {{ run.assigned_to.username }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                    テスト実行履歴がありません。「テスト実行を開始」ボタンからテストを実行してください。
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

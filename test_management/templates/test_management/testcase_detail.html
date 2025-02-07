@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ testcase.title }} - TestRoad{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown.min.css">
+<style>
+    .markdown-body {
+        box-sizing: border-box;
+        min-width: 200px;
+        max-width: 100%;
+        padding: 15px;
+        background-color: white;
+        border-radius: 0.375rem;
+    }
+    .markdown-body img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ testcase.title }}</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                テストスイート: <a href="{% url 'testsuite_detail' testcase.suite.id %}" class="text-primary hover:text-primary-dark">{{ testcase.suite.name }}</a>
+            </p>
+        </div>
+        <div class="flex space-x-4">
+            <a href="{% url 'testcase_update' testcase.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                編集
+            </a>
+            <a href="{% url 'testcase_delete' testcase.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                削除
+            </a>
+            <a href="{% url 'testcase_duplicate' testcase.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                複製
+            </a>
+            <a href="{% url 'testcase_history' testcase.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                履歴
+            </a>
+        </div>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500 mb-2">説明</dt>
+                <dd class="bg-gray-50 rounded-lg p-4">{{ testcase.get_description_as_markdown|safe }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500 mb-2">前提条件</dt>
+                <dd class="bg-gray-50 rounded-lg p-4">{{ testcase.get_preconditions_as_markdown|safe }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500 mb-2">テストステップ</dt>
+                <dd class="bg-gray-50 rounded-lg p-4">{{ testcase.get_steps_as_markdown|safe }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500 mb-2">期待される結果</dt>
+                <dd class="bg-gray-50 rounded-lg p-4">{{ testcase.get_expected_result_as_markdown|safe }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">添付ファイル</dt>
+                <dd class="mt-1">
+                    {% if testcase.attachments.exists %}
+                        <ul class="divide-y divide-gray-200">
+                            {% for attachment in testcase.attachments.all %}
+                                <li class="py-2 flex justify-between items-center">
+                                    <a href="{{ attachment.file.url }}" target="_blank" class="text-primary hover:text-primary-dark">
+                                        {{ attachment.filename }}
+                                    </a>
+                                    <form method="post" action="{% url 'testcase_attachment_delete' attachment.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('このファイルを削除してもよろしいですか？')">
+                                            削除
+                                        </button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-gray-500">添付ファイルはありません</p>
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">作成者</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testcase.created_by.username }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">作成日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testcase.created_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">更新日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testcase.updated_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+{% endblock %} 

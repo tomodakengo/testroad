@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ bug.title }} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ bug.title }}</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                プロジェクト: <a href="{% url 'project_detail' bug.test_result.test_run.test_plan.project.id %}" class="text-primary hover:text-primary-dark">{{ bug.test_result.test_run.test_plan.project.name }}</a>
+            </p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'bug_update' bug.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                編集
+            </a>
+            <a href="{% url 'bug_delete' bug.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                削除
+            </a>
+            <a href="{% url 'testrun_detail' bug.test_result.test_run.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                テスト実行を表示
+            </a>
+        </div>
+    </div>
+    <div class="border-t border-gray-200">
+        <dl>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">ステータス</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <form method="post" class="inline-flex items-center">
+                        {% csrf_token %}
+                        <select name="status" onchange="this.form.submit()" class="mr-3 block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if bug.status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </dd>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">優先度</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        {% if bug.priority == 'critical' %}bg-red-100 text-red-800
+                        {% elif bug.priority == 'high' %}bg-orange-100 text-orange-800
+                        {% elif bug.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ bug.get_priority_display }}
+                    </span>
+                </dd>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">担当者</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {% if bug.assigned_to %}
+                        {{ bug.assigned_to.username }}
+                    {% else %}
+                        未割当
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">起票者</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ bug.created_by.username }}
+                </dd>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">作成日時</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ bug.created_at|date:"Y/m/d H:i" }}
+                </dd>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">更新日時</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ bug.updated_at|date:"Y/m/d H:i" }}
+                </dd>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">説明</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ bug.description|linebreaks }}
+                </dd>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">テストケース</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <a href="{% url 'testcase_detail' bug.test_result.test_case.id %}" class="text-primary hover:text-primary-dark">
+                        {{ bug.test_result.test_case.title }}
+                    </a>
+                </dd>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">テスト結果</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        {% if bug.test_result.status == 'passed' %}bg-green-100 text-green-800
+                        {% elif bug.test_result.status == 'failed' %}bg-red-100 text-red-800
+                        {% elif bug.test_result.status == 'blocked' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ bug.test_result.get_status_display }}
+                    </span>
+                    {% if bug.test_result.comment %}
+                        <p class="mt-2">{{ bug.test_result.comment|linebreaks }}</p>
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+    </div>
+</div>
+{% endblock %} 

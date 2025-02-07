@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}テストスイートの編集{% else %}新規テストスイート{% endif %} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h1 class="text-2xl font-bold text-gray-900">
+            {% if form.instance.pk %}
+                テストスイートの編集
+            {% else %}
+                新規テストスイート
+            {% endif %}
+        </h1>
+        <p class="mt-1 text-sm text-gray-500">
+            プロジェクト: {{ project.name }}
+        </p>
+    </div>
+    <div class="border-t border-gray-200">
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="mt-6 flex items-center justify-end space-x-4">
+                <a href="{% url 'project_detail' project.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    キャンセル
+                </a>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {% if form.instance.pk %}更新{% else %}作成{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

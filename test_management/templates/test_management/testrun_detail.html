@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load test_management_extras %}
+
+{% block title %}{{ testrun.name }} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ testrun.name }}</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                テストプラン: <a href="{% url 'testplan_detail' testrun.test_plan.id %}" class="text-primary hover:text-primary-dark">{{ testrun.test_plan.name }}</a>
+            </p>
+        </div>
+        <div class="flex space-x-4">
+            <a href="{% url 'testrun_update' testrun.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                編集
+            </a>
+            <a href="{% url 'testrun_delete' testrun.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                削除
+            </a>
+        </div>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">説明</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testrun.description|linebreaks|default:"説明なし" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">担当者</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testrun.assigned_to.username }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">ステータス</dt>
+                <dd class="mt-1">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        {% if testrun.status == 'not_started' %}bg-gray-100 text-gray-800
+                        {% elif testrun.status == 'in_progress' %}bg-blue-100 text-blue-800
+                        {% else %}bg-green-100 text-green-800{% endif %}">
+                        {{ testrun.get_status_display }}
+                    </span>
+                </dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">作成日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testrun.created_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">更新日</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ testrun.updated_at|date:"Y/m/d H:i" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-8">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h2 class="text-xl font-bold text-gray-900">テスト結果</h2>
+            <div class="mt-2 grid grid-cols-4 gap-4">
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-green-800">合格</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-green-800">
+                        {{ results|count_by_status:"passed" }}
+                    </dd>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-red-800">不合格</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-red-800">
+                        {{ results|count_by_status:"failed" }}
+                    </dd>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-yellow-800">ブロック</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-yellow-800">
+                        {{ results|count_by_status:"blocked" }}
+                    </dd>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-gray-800">未実行</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-800">
+                        {{ testrun.test_plan.test_cases.count|subtract:results|length }}
+                    </dd>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if testrun.test_plan.test_cases.exists %}
+                <ul class="divide-y divide-gray-200">
+                    {% for case in testrun.test_plan.test_cases.all %}
+                        <li class="hover:bg-gray-50">
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <button type="button" onclick="openTestCaseModal('{{ case.id }}')" class="text-lg font-medium text-primary hover:text-primary-dark">
+                                            {{ case.title }}
+                                        </button>
+                                        <p class="mt-1 text-sm text-gray-500">{{ case.suite.name }}</p>
+                                    </div>
+                                    {% with result=results|get_item:case.id %}
+                                        {% if result %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if result.status == 'passed' %}bg-green-100 text-green-800
+                                                {% elif result.status == 'failed' %}bg-red-100 text-red-800
+                                                {% elif result.status == 'blocked' %}bg-yellow-100 text-yellow-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ result.get_status_display }}
+                                            </span>
+                                        {% else %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                未実行
+                                            </span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                                {% with result=results|get_item:case.id %}
+                                    {% if result %}
+                                        <div class="mt-2">
+                                            <p class="text-sm text-gray-500">
+                                                <span class="font-medium">実行者:</span> {{ result.executed_by.username }}
+                                                <span class="ml-4 font-medium">実行日時:</span> {{ result.executed_at|date:"Y/m/d H:i" }}
+                                            </p>
+                                            {% if result.comment %}
+                                                <p class="mt-2 text-sm text-gray-700">{{ result.comment|linebreaks }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                    テストケースがありません。テストプランにテストケースを追加してください。
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- テストケース詳細モーダル -->
+{% for case in testrun.test_plan.test_cases.all %}
+<div id="testcase-modal-{{ case.id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            {{ case.title }}
+                        </h3>
+                        <div class="mt-4 space-y-4">
+                            {% if case.description %}
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700">説明</h4>
+                                <p class="mt-1 text-sm text-gray-600">{{ case.description|linebreaks }}</p>
+                            </div>
+                            {% endif %}
+                            {% if case.preconditions %}
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700">前提条件</h4>
+                                <p class="mt-1 text-sm text-gray-600">{{ case.preconditions|linebreaks }}</p>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700">テストステップ</h4>
+                                <p class="mt-1 text-sm text-gray-600">{{ case.steps|linebreaks }}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700">期待される結果</h4>
+                                <p class="mt-1 text-sm text-gray-600">{{ case.expected_result|linebreaks }}</p>
+                            </div>
+                            {% with result=results|get_item:case.id %}
+                                {% if result %}
+                                    <div class="mt-2 border-t border-gray-200 pt-4">
+                                        <h4 class="text-sm font-medium text-gray-700">テスト結果</h4>
+                                        <div class="mt-2">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if result.status == 'passed' %}bg-green-100 text-green-800
+                                                {% elif result.status == 'failed' %}bg-red-100 text-red-800
+                                                {% elif result.status == 'blocked' %}bg-yellow-100 text-yellow-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ result.get_status_display }}
+                                            </span>
+                                            <p class="mt-2 text-sm text-gray-600">{{ result.comment|linebreaks|default:"コメントなし" }}</p>
+                                            <p class="mt-1 text-sm text-gray-500">
+                                                実行者: {{ result.executed_by.username }} / 
+                                                実行日時: {{ result.executed_at|date:"Y/m/d H:i" }}
+                                            </p>
+                                            <div id="bug-button-container-{{ case.id }}" class="mt-4 {% if result.status != 'failed' and result.status != 'blocked' %}hidden{% endif %}">
+                                                <a href="{% url 'bug_create' result.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                    不具合を起票
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                            <form method="post" action="{% url 'testresult_create' testrun.id case.id %}" class="mt-6 space-y-4">
+                                {% csrf_token %}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">ステータス</label>
+                                    {% with result=results|get_item:case.id %}
+                                    <select name="status" id="status-{{ case.id }}" onchange="handleStatusChange({{ case.id }})" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
+                                        <option value="passed" {% if result and result.status == 'passed' %}selected{% endif %}>合格</option>
+                                        <option value="failed" {% if result and result.status == 'failed' %}selected{% endif %}>不合格</option>
+                                        <option value="blocked" {% if result and result.status == 'blocked' %}selected{% endif %}>ブロック</option>
+                                        <option value="skipped" {% if result and result.status == 'skipped' %}selected{% endif %}>スキップ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">コメント</label>
+                                    <textarea name="comment" rows="3" class="mt-1 block w-full shadow-sm focus:ring-primary focus:border-primary sm:text-sm border border-gray-300 rounded-md">{% if result %}{{ result.comment }}{% endif %}</textarea>
+                                    {% endwith %}
+                                </div>
+                                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
+                                        結果を記録
+                                    </button>
+                                    <button type="button" onclick="closeTestCaseModal('{{ case.id }}')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm">
+                                        閉じる
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- JavaScript -->
+<script>
+function openTestCaseModal(caseId) {
+    document.getElementById(`testcase-modal-${caseId}`).classList.remove('hidden');
+}
+
+function closeTestCaseModal(caseId) {
+    document.getElementById(`testcase-modal-${caseId}`).classList.add('hidden');
+}
+
+function handleStatusChange(caseId) {
+    const status = document.getElementById(`status-${caseId}`).value;
+    const bugButtonContainer = document.getElementById(`bug-button-container-${caseId}`);
+    
+    if (status === 'failed' || status === 'blocked') {
+        bugButtonContainer.classList.remove('hidden');
+    } else {
+        bugButtonContainer.classList.add('hidden');
+    }
+}
+
+// ESCキーでモーダルを閉じる
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modals = document.querySelectorAll('[id^="testcase-modal-"]');
+        modals.forEach(modal => {
+            if (!modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+            }
+        });
+    }
+});
+
+// モーダルの外側をクリックしたときに閉じる
+window.addEventListener('click', function(event) {
+    const modals = document.querySelectorAll('[id^="testcase-modal-"]');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %} 

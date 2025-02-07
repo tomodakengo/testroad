@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}不具合一覧 - {{ project.name }} - TestRoad{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">不具合一覧</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                プロジェクト: <a href="{% url 'project_detail' project.id %}" class="text-primary hover:text-primary-dark">{{ project.name }}</a>
+            </p>
+        </div>
+    </div>
+    <div class="border-t border-gray-200">
+        <!-- フィルター -->
+        <div class="p-4 bg-gray-50 border-b border-gray-200">
+            <form method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">ステータス</label>
+                    <select name="status" id="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
+                        <option value="">すべて</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="priority" class="block text-sm font-medium text-gray-700">優先度</label>
+                    <select name="priority" id="priority" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
+                        <option value="">すべて</option>
+                        {% for value, label in priority_choices %}
+                            <option value="{{ value }}" {% if request.GET.priority == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        フィルター
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 不具合一覧 -->
+        {% if bugs %}
+            <ul class="divide-y divide-gray-200">
+                {% for bug in bugs %}
+                    <li class="hover:bg-gray-50">
+                        <a href="{% url 'bug_detail' bug.id %}" class="block">
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if bug.priority == 'critical' %}bg-red-100 text-red-800
+                                            {% elif bug.priority == 'high' %}bg-orange-100 text-orange-800
+                                            {% elif bug.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                            {{ bug.get_priority_display }}
+                                        </span>
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if bug.status == 'open' %}bg-red-100 text-red-800
+                                            {% elif bug.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                            {% elif bug.status == 'resolved' %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-green-100 text-green-800{% endif %}">
+                                            {{ bug.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="ml-2 flex-shrink-0 flex">
+                                        <p class="text-sm text-gray-500">{{ bug.created_at|date:"Y/m/d H:i" }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <h3 class="text-lg font-medium text-gray-900">{{ bug.title }}</h3>
+                                    <p class="mt-1 text-sm text-gray-600">{{ bug.description|truncatewords:50 }}</p>
+                                </div>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">
+                                        起票者: {{ bug.created_by.username }}
+                                        {% if bug.assigned_to %}
+                                            / 担当者: {{ bug.assigned_to.username }}
+                                        {% endif %}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        テストケース: {{ bug.test_result.test_case.title }}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                不具合はありません。
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

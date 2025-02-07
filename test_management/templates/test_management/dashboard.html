@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}ダッシュボード - TestRoad{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- プロジェクト数 -->
+    <a href="{% url 'project_list' %}" class="block">
+        <div class="bg-white shadow rounded-lg p-6 hover:bg-gray-50 transition-colors">
+            <h3 class="text-lg font-medium text-gray-900">プロジェクト</h3>
+            <p class="mt-2 text-3xl font-bold text-primary">{{ total_projects }}</p>
+        </div>
+    </a>
+
+    <!-- テスト実行数 -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900">テスト実行</h3>
+        <p class="mt-2 text-3xl font-bold text-primary">{{ total_runs }}</p>
+        <div class="mt-2 text-sm text-gray-500">
+            <span class="text-green-600">{{ completed_runs }} 完了</span> /
+            <span class="text-blue-600">{{ in_progress_runs }} 実行中</span>
+        </div>
+    </div>
+
+    <!-- テスト結果 -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900">テスト結果</h3>
+        <p class="mt-2 text-3xl font-bold text-primary">{{ total_results }}</p>
+        <div class="mt-2 text-sm">
+            <span class="text-green-600">{{ results_by_status.passed }} 合格</span> /
+            <span class="text-red-600">{{ results_by_status.failed }} 不合格</span> /
+            <span class="text-yellow-600">{{ results_by_status.blocked }} ブロック</span>
+        </div>
+    </div>
+
+    <!-- 不具合数 -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900">不具合</h3>
+        <p class="mt-2 text-3xl font-bold text-primary">{{ total_bugs }}</p>
+        <div class="mt-2 text-sm">
+            <span class="text-red-600">{{ bugs_by_status.open }} 未対応</span> /
+            <span class="text-blue-600">{{ bugs_by_status.in_progress }} 対応中</span>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- 不具合の状況 -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">不具合の状況</h3>
+        <div class="space-y-4">
+            <div>
+                <h4 class="text-sm font-medium text-gray-500">ステータス別</h4>
+                <div class="mt-2 grid grid-cols-2 gap-4">
+                    <div class="bg-red-50 p-3 rounded">
+                        <div class="text-sm text-red-800">未対応</div>
+                        <div class="text-2xl font-bold text-red-800">{{ bugs_by_status.open }}</div>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded">
+                        <div class="text-sm text-blue-800">対応中</div>
+                        <div class="text-2xl font-bold text-blue-800">{{ bugs_by_status.in_progress }}</div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <div class="text-sm text-yellow-800">解決済み</div>
+                        <div class="text-2xl font-bold text-yellow-800">{{ bugs_by_status.resolved }}</div>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded">
+                        <div class="text-sm text-green-800">完了</div>
+                        <div class="text-2xl font-bold text-green-800">{{ bugs_by_status.closed }}</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-sm font-medium text-gray-500">優先度別</h4>
+                <div class="mt-2 grid grid-cols-2 gap-4">
+                    <div class="bg-red-50 p-3 rounded">
+                        <div class="text-sm text-red-800">最重要</div>
+                        <div class="text-2xl font-bold text-red-800">{{ bugs_by_priority.critical }}</div>
+                    </div>
+                    <div class="bg-orange-50 p-3 rounded">
+                        <div class="text-sm text-orange-800">高</div>
+                        <div class="text-2xl font-bold text-orange-800">{{ bugs_by_priority.high }}</div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <div class="text-sm text-yellow-800">中</div>
+                        <div class="text-2xl font-bold text-yellow-800">{{ bugs_by_priority.medium }}</div>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded">
+                        <div class="text-sm text-blue-800">低</div>
+                        <div class="text-2xl font-bold text-blue-800">{{ bugs_by_priority.low }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最近の活動 -->
+    <div class="space-y-8">
+        <!-- 最近の不具合 -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">最近の不具合</h3>
+                {% if recent_bugs %}
+                    <a href="{% url 'project_bugs' recent_bugs.0.test_result.test_run.test_plan.project.id %}" class="text-sm text-primary hover:text-primary-dark">
+                        すべて表示
+                    </a>
+                {% endif %}
+            </div>
+            {% if recent_bugs %}
+                <div class="space-y-4">
+                    {% for bug in recent_bugs %}
+                        <a href="{% url 'testrun_detail' bug.test_result.test_run.id %}" class="block hover:bg-gray-50 -mx-6 px-6 py-2">
+                            <div class="flex items-start">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if bug.priority == 'critical' %}bg-red-100 text-red-800
+                                    {% elif bug.priority == 'high' %}bg-orange-100 text-orange-800
+                                    {% elif bug.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                    {{ bug.get_priority_display }}
+                                </span>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">{{ bug.title }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ bug.created_at|date:"Y/m/d H:i" }} - 
+                                        {% if bug.assigned_to %}{{ bug.assigned_to.username }}{% else %}未割当{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center">不具合はありません</p>
+            {% endif %}
+        </div>
+
+        <!-- 最近のテスト実行 -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">最近のテスト実行</h3>
+            {% if recent_runs %}
+                <div class="space-y-4">
+                    {% for run in recent_runs %}
+                        <a href="{% url 'testrun_detail' run.id %}" class="block hover:bg-gray-50 -mx-6 px-6 py-2">
+                            <div class="flex items-start">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if run.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif run.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ run.get_status_display }}
+                                </span>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">{{ run.name }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ run.created_at|date:"Y/m/d H:i" }} - 
+                                        {% if run.assigned_to %}{{ run.assigned_to.username }}{% else %}未割当{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center">テスト実行はありません</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
