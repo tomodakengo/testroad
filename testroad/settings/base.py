@@ -5,18 +5,9 @@ Base settings to be imported by environment specific settings.
 
 import os
 from pathlib import Path
-from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-def get_env_value(env_variable):
-    """環境変数を取得する関数"""
-    try:
-        return os.environ[env_variable]
-    except KeyError:
-        error_msg = f'Set the {env_variable} environment variable'
-        raise ImproperlyConfigured(error_msg)
 
 # Application definition
 INSTALLED_APPS = [
@@ -90,23 +81,15 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# File upload settings
-FILE_UPLOAD_HANDLERS = [
-    'django.core.files.uploadhandler.MemoryFileUploadHandler',
-    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
-]
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
-FILE_UPLOAD_PERMISSIONS = 0o644
-FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
