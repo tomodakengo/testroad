@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   web:
     build: .
@@ -9,19 +7,23 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DEBUG=1
-      - DJANGO_SETTINGS_MODULE=testroad.settings
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
     depends_on:
       - db
 
   db:
-    image: postgres:13
+    image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=testroad
-      - POSTGRES_USER=testroad_user
-      - POSTGRES_PASSWORD=testroad_password
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
 
 volumes:
   postgres_data:
