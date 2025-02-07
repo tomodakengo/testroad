@@ -36,16 +36,54 @@ services:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./backups:/backups
+      - ./docker/postgres/backup.sh:/usr/local/bin/backup.sh
     environment:
       - POSTGRES_DB=testroad
       - POSTGRES_USER=testroad_user
       - POSTGRES_PASSWORD=testroad_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U testroad_user -d testroad"]
+      test: [ "CMD-SHELL", "pg_isready -U testroad_user -d testroad" ]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  backup:
+    image: postgres:15
+    volumes:
+      - ./backups:/backups
+      - ./docker/postgres/backup.sh:/usr/local/bin/backup.sh
+    environment:
+      - PGHOST=db
+      - POSTGRES_DB=testroad
+      - POSTGRES_USER=testroad_user
+      - POSTGRES_PASSWORD=testroad_password
+    entrypoint: []
+    command: |
+      sh -c '
+        apt-get update &&
+        apt-get install -y cron &&
+        chmod +x /usr/local/bin/backup.sh &&
+        echo "0 3 * * * /usr/local/bin/backup.sh" > /etc/cron.d/backup-cron &&
+        chmod 0644 /etc/cron.d/backup-cron &&
+        cron -f
+      '
+    depends_on:
+      db:
+        condition: service_healthy
     restart: always
 
 volumes:

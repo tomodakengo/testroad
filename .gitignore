@@ -49,4 +49,48 @@ yarn-error.log*
 
 # System
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Environment variables
+.env.*
+!.env.example
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+
+# Node.js (Tailwind CSS)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Project specific
+*.pid
+*.sock
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+
+# OS specific
+Thumbs.db
+.DS_Store
+*.swp
+*.bak 
