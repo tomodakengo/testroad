@@ -7,4 +7,8 @@ crispy-tailwind==1.0.0
 gunicorn==21.2.0
 whitenoise==6.6.0
 markdown==3.5.2
-Pillow==10.2.0 
+Pillow==10.2.0
+django-storages==1.14.2
+boto3==1.34.34
+django-environ==0.11.2
+django-cors-headers==4.3.1 
