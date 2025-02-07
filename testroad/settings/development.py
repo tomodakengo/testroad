@@ -8,21 +8,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_env_value('DJANGO_SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-dev-key-for-development-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'testroad'),
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'USER': os.getenv('POSTGRES_USER', 'testroad_user'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'testroad_password'),
+        'HOST': os.getenv('POSTGRES_HOST', 'db'),  # Dockerのサービス名
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }

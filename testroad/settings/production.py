@@ -4,8 +4,18 @@ Production settings for testroad project.
 
 from .base import *
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
+import os
 
 load_dotenv()
+
+def get_env_value(env_variable):
+    """環境変数を取得する関数"""
+    try:
+        return os.environ[env_variable]
+    except KeyError:
+        error_msg = f'Set the {env_variable} environment variable'
+        raise ImproperlyConfigured(error_msg)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env_value('DJANGO_SECRET_KEY')

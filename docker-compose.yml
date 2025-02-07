@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   web:
     build: .
@@ -7,9 +9,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DJANGO_SECRET_KEY=django-insecure-dev-key-for-development-only
+      - DJANGO_DEBUG=True
+      - POSTGRES_DB=testroad
+      - POSTGRES_USER=testroad_user
+      - POSTGRES_PASSWORD=testroad_password
       - POSTGRES_HOST=db
     depends_on:
       - db
@@ -19,9 +23,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=testroad
+      - POSTGRES_USER=testroad_user
+      - POSTGRES_PASSWORD=testroad_password
     ports:
       - "5432:5432"
 

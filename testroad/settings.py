@@ -12,42 +12,23 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
-import sys
 from pathlib import Path
-from django.core.exceptions import ImproperlyConfigured
-from dotenv import load_dotenv
-
-# .envファイルの読み込み
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# settingsディレクトリをPythonパスに追加
-current_path = Path(__file__).resolve().parent
-settings_path = current_path / 'settings'
-sys.path.insert(0, str(settings_path.parent))
-
 # 開発環境の設定を読み込む
 try:
-    from testroad.settings.development import *  # noqa
+    from .settings.development import *  # noqa
 except ImportError as e:
     print(f"Error importing settings: {e}")
     raise
-
-def get_env_value(env_variable):
-    """環境変数を取得する関数"""
-    try:
-        return os.environ[env_variable]
-    except KeyError:
-        error_msg = f'Set the {env_variable} environment variable'
-        raise ImproperlyConfigured(error_msg)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_env_value('DJANGO_SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
